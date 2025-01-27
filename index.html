@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Object Viewer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+    <div id="container"></div>
+    <script>
+        // Parse URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const shape = urlParams.get('shape') || 'box';
+        const color = JSON.parse(urlParams.get('color') || '{"r":1,"g":1,"b":1}');
+        const scale = JSON.parse(urlParams.get('scale') || '{"x":1,"y":1,"z":1}');
+
+        // Setup Three.js
+        const container = document.getElementById('container');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        container.appendChild(renderer.domElement);
+
+        // Add light
+        const light = new THREE.DirectionalLight(0xffffff, 1);
+        light.position.set(5, 5, 5).normalize();
+        scene.add(light);
+
+        // Create geometry based on shape
+        let geometry;
+        switch (shape) {
+            case 'box':
+                geometry = new THREE.BoxGeometry(scale.x, scale.y, scale.z);
+                break;
+            case 'sphere':
+                geometry = new THREE.SphereGeometry(scale.x / 2, 32, 32);
+                break;
+            case 'cylinder':
+                geometry = new THREE.CylinderGeometry(scale.x / 2, scale.x / 2, scale.y, 32);
+                break;
+            default:
+                geometry = new THREE.BoxGeometry(scale.x, scale.y, scale.z);
+        }
+
+        // Create material and mesh
+        const material = new THREE.MeshPhongMaterial({ color: new THREE.Color(color.r, color.g, color.b) });
+        const object = new THREE.Mesh(geometry, material);
+        scene.add(object);
+
+        // Camera position
+        camera.position.z = 5;
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            object.rotation.y += 0.01;
+            renderer.render(scene, camera);
+        }
+        animate();
+    </script>
+</body>
+</html>
